@@ -4,6 +4,8 @@ module BreakDance
       def enable_authorization!
         # ToDo: Try with prepend_before_filter!
         before_filter -> {
+          @with_authorization = true
+
           Thread.current[:security_policy_holder] = BreakDance::SecurityPoliciesHolder.new
           SecurityPolicy.new(current_user)
         }
@@ -30,11 +32,39 @@ module BreakDance
         }
       end
     end
+
+    def self.included(base)
+      base.extend ClassMethods
+      base.helper_method :can?
+    end
+
+    def with_authorization?
+      @with_authorization || false
+    end
+
+    # ToDo: Find a way to define abilities for not logged users!
+    # ToDo: Consolidate with the before_filter from the application_controller.
+    # ToDo: We need also cannot?
+    # ToDo: Right now if we add new resource (and in the DB there is no record for it), it is unchecked in the form, but available to be used. Fix!
+    # ToDo: If we have two rules with overriding actions and one is selected and the other is not, the second one applies 'false' for the resource. Fix!
+    # ToDo: if empty permissions in the DB it should raise "not authorised"
+    def can?(action, resource)
+      return true unless with_authorization?
+
+      restricted_permissions = current_user.permissions['resources'].select { |_,v| v != '1'}
+      restricted = restricted_permissions.any? do |r|
+        Thread.current[:security_policy_holder].resources[r[0].to_sym] and Thread.current[:security_policy_holder].resources[r[0].to_sym][:resources].any? do |k,v|
+          k == resource.to_sym && (v == :all_actions || v.include?(action.to_sym) )
+        end
+      end
+
+      !restricted
+    end
   end
 end
 
 if defined? ActionController::Base
   ActionController::Base.class_eval do
-    extend BreakDance::ControllerAdditions::ClassMethods
+    include BreakDance::ControllerAdditions
   end
 end
