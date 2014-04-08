@@ -9,16 +9,13 @@ module BreakDance
 
     def self.included(base)
       base.extend ClassMethods
-      base.helper_method :can?
+      base.helper_method :can?, :cannot?
     end
 
     def with_authorization?
       @with_authorization || false
     end
 
-    # ToDo: Find a way to define abilities for not logged users!
-    # ToDo: Consolidate with the before_filter from the application_controller.
-    # ToDo: We need also cannot?
     # ToDo: Right now if we add new resource (and in the DB there is no record for it), it is unchecked in the form, but available to be used. Fix!
     # ToDo: If we have two rules with overriding actions and one is selected and the other is not, the second one applies 'false' for the resource. Fix!
     # ToDo: if empty permissions in the DB it should raise "not authorised"
@@ -35,6 +32,10 @@ module BreakDance
       end
 
       allowed
+    end
+
+    def cannot?(action, resource)
+      !can?(action, resource)
     end
 
     def current_permissions
