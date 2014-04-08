@@ -3,9 +3,6 @@ module BreakDance
     module ClassMethods
       def enable_authorization!
         before_filter :prepare_security_policy
-
-        # ToDo: The logic here will also serve for can? helpers. We will need to extract it an just use it here and in can?. It also may be suitable to make it available in the models.
-        # ToDo: Too obscure. Rethink!
         before_filter :access_filter
       end
     end
@@ -28,7 +25,8 @@ module BreakDance
     def can?(action, resource)
       return true unless with_authorization?
 
-      allowed_permissions = current_user_permissions['resources'].select { |_,v| v == '1'}
+      allowed_permissions = current_permissions['resources'].select { |_,v| v == '1'}
+
       allowed = allowed_permissions.any? do |r|
         Thread.current[:security_policy_holder].resources[r[0].to_sym] and Thread.current[:security_policy_holder].resources[r[0].to_sym][:can].any? do |k,v|
           v = Array.wrap(v)
@@ -39,7 +37,7 @@ module BreakDance
       allowed
     end
 
-    def current_user_permissions
+    def current_permissions
       Permissions.for_user(current_user)
     end
 
@@ -53,18 +51,7 @@ module BreakDance
     end
 
     def access_filter
-      unless request.path == root_path
-        allowed_permissions = current_user_permissions['resources'].select { |_,v| v == '1'}
-
-        allowed = allowed_permissions.any? do |r|
-          Thread.current[:security_policy_holder].resources[r[0].to_sym] and Thread.current[:security_policy_holder].resources[r[0].to_sym][:can].any? do |k,v|
-            v = Array.wrap(v)
-            k == self.controller_path.to_sym && (v.include?(:all_actions) || v.include?(self.action_name.to_sym) )
-          end
-        end
-
-        raise BreakDance::AccessDenied.new unless allowed
-      end
+      raise BreakDance::AccessDenied.new unless request.path == root_path || can?(self.action_name ,self.controller_path)
     end
 
   end
