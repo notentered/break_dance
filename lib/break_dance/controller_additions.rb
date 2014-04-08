@@ -2,34 +2,11 @@ module BreakDance
   module ControllerAdditions
     module ClassMethods
       def enable_authorization!
-        # ToDo: Try with prepend_before_filter!
-        before_filter -> {
-          @with_authorization = true
+        before_filter :prepare_security_policy
 
-          Thread.current[:security_policy_holder] = BreakDance::SecurityPoliciesHolder.new
-          SecurityPolicy.new(current_user)
-        }
-
-        # ToDo: now actions can be :all_actions or array of :action. Make Array.wrap in order to specify only one action without brackets (eg. [:action])
         # ToDo: The logic here will also serve for can? helpers. We will need to extract it an just use it here and in can?. It also may be suitable to make it available in the models.
         # ToDo: Too obscure. Rethink!
-        before_filter -> {
-          if current_user
-            if current_user.permissions
-              restricted_permissions = current_user.permissions['resources'].select { |_,v| v != '1'}
-              restricted = restricted_permissions.any? do |r|
-                Thread.current[:security_policy_holder].resources[r[0].to_sym] and Thread.current[:security_policy_holder].resources[r[0].to_sym][:resources].any? do |k,v|
-                  k == self.controller_path.to_sym && (v == :all_actions || v.include?(self.action_name.to_sym) )
-                end
-              end
-
-              raise AccessDenied.new if restricted
-            end
-          else
-            # ToDo: a big pile of codesmell!
-            raise BreakDance::NotLoggedIn.new unless (controller_path == 'user_sessions' and action_name != 'destroy') or controller_name == "sms_responder"
-          end
-        }
+        before_filter :access_filter
       end
     end
 
@@ -51,16 +28,47 @@ module BreakDance
     def can?(action, resource)
       return true unless with_authorization?
 
-      restricted_permissions = current_user.permissions['resources'].select { |_,v| v != '1'}
-      restricted = restricted_permissions.any? do |r|
-        Thread.current[:security_policy_holder].resources[r[0].to_sym] and Thread.current[:security_policy_holder].resources[r[0].to_sym][:resources].any? do |k,v|
-          k == resource.to_sym && (v == :all_actions || v.include?(action.to_sym) )
+      allowed_permissions = current_user_permissions['resources'].select { |_,v| v == '1'}
+      allowed = allowed_permissions.any? do |r|
+        Thread.current[:security_policy_holder].resources[r[0].to_sym] and Thread.current[:security_policy_holder].resources[r[0].to_sym][:can].any? do |k,v|
+          v = Array.wrap(v)
+          k == resource.to_sym && (v.include?(:all_actions) || v.include?(action.to_sym) )
         end
       end
 
-      !restricted
+      allowed
     end
+
+    def current_user_permissions
+      Permissions.for_user(current_user)
+    end
+
+    private
+
+    def prepare_security_policy
+      @with_authorization = true
+
+      Thread.current[:security_policy_holder] = BreakDance::SecurityPoliciesHolder.new
+      SecurityPolicy.new(current_user)
+    end
+
+    def access_filter
+      unless request.path == root_path
+        allowed_permissions = current_user_permissions['resources'].select { |_,v| v == '1'}
+
+        allowed = allowed_permissions.any? do |r|
+          Thread.current[:security_policy_holder].resources[r[0].to_sym] and Thread.current[:security_policy_holder].resources[r[0].to_sym][:can].any? do |k,v|
+            v = Array.wrap(v)
+            k == self.controller_path.to_sym && (v.include?(:all_actions) || v.include?(self.action_name.to_sym) )
+          end
+        end
+
+        raise BreakDance::AccessDenied.new unless allowed
+      end
+    end
+
   end
+
 end
 
 if defined? ActionController::Base

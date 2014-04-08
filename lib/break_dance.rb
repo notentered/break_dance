@@ -11,6 +11,4 @@ module BreakDance
 
   class NotLoggedIn < StandardError
   end
-
-  # Your code goes here...
 end
