@@ -1,5 +1,5 @@
 module BreakDance
-  module Policy
+  module SecurityPolicyAdditions
     def policy(name)
       @policy_name = name
       yield
