@@ -16,9 +16,6 @@ module BreakDance
       @with_authorization || false
     end
 
-    # ToDo: Right now if we add new resource (and in the DB there is no record for it), it is unchecked in the form, but available to be used. Fix!
-    # ToDo: If we have two rules with overriding actions and one is selected and the other is not, the second one applies 'false' for the resource. Fix!
-    # ToDo: if empty permissions in the DB it should raise "not authorised"
     def can?(action, resource)
       return true unless with_authorization?
 
