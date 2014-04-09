@@ -45,6 +45,7 @@ module BreakDance
       @with_authorization = true
 
       Thread.current[:security_policy_holder] = BreakDance::SecurityPoliciesHolder.new
+
       SecurityPolicy.new(current_user)
     end
 
