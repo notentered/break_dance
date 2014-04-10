@@ -50,7 +50,7 @@ module BreakDance
     end
 
     def access_filter
-      raise BreakDance::AccessDenied.new unless request.path == root_path || can?(self.action_name ,self.controller_path)
+      raise BreakDance::AccessDenied.new unless can?(self.action_name ,self.controller_path)
     end
 
   end
