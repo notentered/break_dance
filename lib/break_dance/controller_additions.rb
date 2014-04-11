@@ -24,7 +24,15 @@ module BreakDance
       allowed = allowed_permissions.any? do |r|
         Thread.current[:security_policy_holder].resources[r[0].to_sym] and Thread.current[:security_policy_holder].resources[r[0].to_sym][:can].any? do |k,v|
           v = Array.wrap(v)
-          k == resource.to_sym && (v.include?(:all_actions) || v.include?(action.to_sym) )
+          k == resource.to_sym && (
+          (
+            v.include?(:all_actions) &&
+            !(
+              Thread.current[:security_policy_holder].resources[r[0].to_sym][:except] &&
+              Thread.current[:security_policy_holder].resources[r[0].to_sym][:except][resource.to_sym] &&
+              Thread.current[:security_policy_holder].resources[r[0].to_sym][:except][resource.to_sym].include?(action.to_sym)
+            )
+          ) || v.include?(action.to_sym) )
         end
       end
 
