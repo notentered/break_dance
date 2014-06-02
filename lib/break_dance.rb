@@ -1,3 +1,5 @@
+require 'request_store'
+
 require 'break_dance/controller_additions'
 require 'break_dance/exceptions'
 require 'break_dance/security_policy_additions'

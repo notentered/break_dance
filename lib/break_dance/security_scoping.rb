@@ -7,7 +7,7 @@ module BreakDance
         scope = super(options)
         return ActiveRecord::Relation.new(self, Arel::Table.new(table_name)) unless scope
 
-        sph = Thread.current[:security_policy_holder]
+        sph = RequestStore.store[:security_policy_holder]
         if sph
           if sph.suppress_security_for == self.name
             sph.suppress_security_for = nil
@@ -21,7 +21,7 @@ module BreakDance
       end
 
       def unsecured
-        Thread.current[:security_policy_holder].suppress_security_for = self.name
+        RequestStore.store[:security_policy_holder].suppress_security_for = self.name
         scoped
       end
     end
