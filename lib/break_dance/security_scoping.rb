@@ -3,7 +3,7 @@ module BreakDance
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def scoped(options = nil)
+      def where(options = nil)
         scope = super(options)
         return ActiveRecord::Relation.new(self, Arel::Table.new(table_name)) unless scope
 
@@ -23,7 +23,7 @@ module BreakDance
       def unsecured
         if RequestStore.store[:security_policy_holder]
           RequestStore.store[:security_policy_holder].suppress_security_for = self.name
-          scoped
+          where
         else
           self
         end
