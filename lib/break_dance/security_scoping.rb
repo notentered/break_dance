@@ -3,8 +3,8 @@ module BreakDance
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def where(options = nil)
-        scope = super(options)
+      def where(scope = nil, *options)
+        scope = super(scope, *options)
         return ActiveRecord::Relation.new(self, Arel::Table.new(table_name)) unless scope
 
         sph = RequestStore.store[:security_policy_holder]
