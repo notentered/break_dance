@@ -21,13 +21,10 @@ module BreakDance
       end
 
       def unsecured
-        if RequestLocals.store[:security_policy_holder]
-          RequestLocals.store[:security_policy_holder].suppress_security_for = self.name
-          where
-        else
-          self
-        end
+        RequestLocals.store[:security_policy_holder].suppress_security_for = self.name if RequestLocals.store[:security_policy_holder]
+        self
       end
+
     end
   end
 end
