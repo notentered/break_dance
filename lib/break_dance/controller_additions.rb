@@ -2,8 +2,8 @@ module BreakDance
   module ControllerAdditions
     module ClassMethods
       def enable_authorization!
-        before_filter :prepare_security_policy
-        before_filter :access_filter
+        before_action :prepare_security_policy
+        before_action :access_filter
       end
     end
 
@@ -22,15 +22,15 @@ module BreakDance
       allowed_permissions = current_permissions['resources'].select { |_,v| v == '1'}
 
       allowed = allowed_permissions.any? do |r|
-        RequestStore.store[:security_policy_holder].resources[r[0].to_sym] and RequestStore.store[:security_policy_holder].resources[r[0].to_sym][:can].any? do |k,v|
+        RequestLocals.store[:security_policy_holder].resources[r[0].to_sym] and RequestLocals.store[:security_policy_holder].resources[r[0].to_sym][:can].any? do |k,v|
           v = Array.wrap(v)
           k == resource.to_sym && (
           (
             v.include?(:all_actions) &&
             !(
-              RequestStore.store[:security_policy_holder].resources[r[0].to_sym][:except] &&
-              RequestStore.store[:security_policy_holder].resources[r[0].to_sym][:except][resource.to_sym] &&
-              RequestStore.store[:security_policy_holder].resources[r[0].to_sym][:except][resource.to_sym].include?(action.to_sym)
+              RequestLocals.store[:security_policy_holder].resources[r[0].to_sym][:except] &&
+              RequestLocals.store[:security_policy_holder].resources[r[0].to_sym][:except][resource.to_sym] &&
+              RequestLocals.store[:security_policy_holder].resources[r[0].to_sym][:except][resource.to_sym].include?(action.to_sym)
             )
           ) || v.include?(action.to_sym) )
         end
@@ -52,7 +52,7 @@ module BreakDance
     def prepare_security_policy
       @with_authorization = true
 
-      RequestStore.store[:security_policy_holder] = BreakDance::SecurityPoliciesHolder.new
+      RequestLocals.store[:security_policy_holder] = BreakDance::SecurityPoliciesHolder.new
 
       SecurityPolicy.new(current_user)
     end

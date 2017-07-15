@@ -7,13 +7,16 @@ module BreakDance
 
     def scope(model)
       model_name = model.name
-      if @user and @user.permissions and @user.permissions['models'] and @user.permissions['models'].has_key? model_name and @user.permissions['models'][model_name] == @policy_name
-        RequestStore.store[:security_policy_holder].policies[model.name] = yield(model.unscoped)
-      end
+
+      # if @user and @user.permissions and @user.permissions['models'] and @user.permissions['models'].has_key? model_name and @user.permissions['models'][model_name] == @policy_name
+        # Just maybe... it may be better to do scope.merge here... in that way we can actually combine separate rules for same model. Not sure if sensible at all.
+
+        RequestLocals.store[:security_policy_holder].policies[model.name] = yield(model.unscoped)
+      # end
     end
 
     def resource(key, resource)
-      RequestStore.store[:security_policy_holder].resources[key] = resource
+      RequestLocals.store[:security_policy_holder].resources[key] = resource
     end
   end
 end

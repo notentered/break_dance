@@ -3,11 +3,11 @@ module BreakDance
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def where(scope = nil, *options)
+      def where(scope = :chain, *options)
         scope = super(scope, *options)
-        return ActiveRecord::Relation.new(self, Arel::Table.new(table_name)) unless scope
+        # return ActiveRecord::Relation.new(self, Arel::Table.new(table_name)) unless scope
 
-        sph = RequestStore.store[:security_policy_holder]
+        sph = RequestLocals.store[:security_policy_holder]
         if sph
           if sph.suppress_security_for == self.name
             sph.suppress_security_for = nil
@@ -21,8 +21,8 @@ module BreakDance
       end
 
       def unsecured
-        if RequestStore.store[:security_policy_holder]
-          RequestStore.store[:security_policy_holder].suppress_security_for = self.name
+        if RequestLocals.store[:security_policy_holder]
+          RequestLocals.store[:security_policy_holder].suppress_security_for = self.name
           where
         else
           self

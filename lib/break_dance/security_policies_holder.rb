@@ -1,5 +1,5 @@
 module BreakDance
-  class SecurityPoliciesHolder < BasicObject
+  class SecurityPoliciesHolder
     attr_accessor :policies, :resources, :suppress_security_for
 
     def initialize

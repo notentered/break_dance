@@ -1,4 +1,4 @@
-require 'request_store'
+require 'request_store_rails'
 
 require 'break_dance/controller_additions'
 require 'break_dance/exceptions'
