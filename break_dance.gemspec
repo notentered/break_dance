@@ -4,6 +4,8 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'break_dance/version'
 
 Gem::Specification.new do |spec|
+  spec.required_ruby_version = '>= 2.3'
+
   spec.name          = 'break_dance'
   spec.version       = BreakDance::VERSION
   spec.authors       = ['Zlatko Zahariev']
