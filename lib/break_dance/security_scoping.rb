@@ -8,12 +8,13 @@ module BreakDance
         # return ActiveRecord::Relation.new(self, Arel::Table.new(table_name)) unless scope
 
         sph = RequestLocals.store[:security_policy_holder]
-        if sph
+        if sph && scope != :chain && scope.class != ActiveRecord::QueryMethods::WhereChain
           if sph.suppress_security_for == self.name
             sph.suppress_security_for = nil
             scope
           else
             scope.merge(sph.policies[self.name]).readonly(false)
+            # sph.policies[self.name].merge(scope).readonly(false)
           end
         else
           scope
