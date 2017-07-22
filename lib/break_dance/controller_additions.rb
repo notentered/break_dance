@@ -2,8 +2,8 @@ module BreakDance
   module ControllerAdditions
     module ClassMethods
       def enable_authorization!
-        before_action :prepare_security_policy
-        before_action :access_filter
+        append_before_action :prepare_security_policy
+        append_before_action :access_filter
       end
     end
 
@@ -53,7 +53,6 @@ module BreakDance
       @with_authorization = true
 
       RequestLocals.store[:security_policy_holder] = BreakDance::SecurityPoliciesHolder.new
-
       SecurityPolicy.new(current_user)
     end
 
