@@ -2,9 +2,9 @@ module BreakDance
   class AccessDenied < StandardError
   end
 
-  class ModelWithoutScope < StandardError
+  class PolicyNotFound < StandardError
   end
 
-  class SecurityPolicyNotFound < StandardError
+  class ModelWithoutScope < StandardError
   end
 end

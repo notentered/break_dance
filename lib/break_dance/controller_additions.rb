@@ -2,7 +2,7 @@ module BreakDance
   module ControllerAdditions
     module ClassMethods
       def enable_authorization!
-        append_before_action :prepare_security_policy
+        append_before_action :prepare_policy
         append_before_action :access_filter
       end
     end
@@ -12,25 +12,21 @@ module BreakDance
       base.helper_method :can?, :cannot?
     end
 
-    def with_authorization?
-      @with_authorization || false
-    end
-
     def can?(action, resource)
-      return true unless with_authorization?
+      return true unless RequestLocals.store[:break_dance_enabled]
 
       allowed_permissions = current_permissions['resources'].select { |_,v| v == '1'}
 
       allowed = allowed_permissions.any? do |r|
-        RequestLocals.store[:security_policy_holder].resources[r[0].to_sym] and RequestLocals.store[:security_policy_holder].resources[r[0].to_sym][:can].any? do |k,v|
+        RequestLocals.store[:break_dance_policy].resources[r[0].to_sym] and RequestLocals.store[:break_dance_policy].resources[r[0].to_sym][:can].any? do |k,v|
           v = Array.wrap(v)
           k == resource.to_sym && (
           (
             v.include?(:all_actions) &&
             !(
-              RequestLocals.store[:security_policy_holder].resources[r[0].to_sym][:except] &&
-              RequestLocals.store[:security_policy_holder].resources[r[0].to_sym][:except][resource.to_sym] &&
-              RequestLocals.store[:security_policy_holder].resources[r[0].to_sym][:except][resource.to_sym].include?(action.to_sym)
+              RequestLocals.store[:break_dance_policy].resources[r[0].to_sym][:except] &&
+              RequestLocals.store[:break_dance_policy].resources[r[0].to_sym][:except][resource.to_sym] &&
+              RequestLocals.store[:break_dance_policy].resources[r[0].to_sym][:except][resource.to_sym].include?(action.to_sym)
             )
           ) || v.include?(action.to_sym) )
         end
@@ -49,11 +45,9 @@ module BreakDance
 
     private
 
-    def prepare_security_policy
-      @with_authorization = true
-
-      RequestLocals.store[:security_policy_holder] = BreakDance::SecurityPoliciesHolder.new
+    def prepare_policy
       SecurityPolicy.new(current_user)
+      RequestLocals.store[:break_dance_enabled] = true
     end
 
     def access_filter
