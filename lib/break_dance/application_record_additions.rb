@@ -31,3 +31,27 @@ module BreakDance
 
   end
 end
+
+# We monkey patch target_scope by just call .unsecured! on relation = ...
+# This is necessary because otherwise some parts of the BreakDance scopes leaked from some joined models.
+# The worse thing here is that this method excludes some parts of the scopes. So we can end up with leaked "where"
+# with no "select" or "join".
+# ToDo: However This may lead to unexpected behaviour if AR changes in future version, it is not tested for STI models and I generally don't like exactly this approach.
+module ActiveRecord
+  module Associations
+    module ThroughAssociation
+
+      def target_scope
+        scope = super
+        reflection.chain.drop(1).each do |reflection|
+          relation = reflection.klass.unsecured!.all
+          scope.merge!(
+            relation.except(:select, :create_with, :includes, :preload, :joins, :eager_load)
+          )
+        end
+        scope
+      end
+
+    end
+  end
+end
