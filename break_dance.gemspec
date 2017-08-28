@@ -1,27 +1,23 @@
-# coding: utf-8
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'break_dance/version'
+$:.push File.expand_path("../lib", __FILE__)
 
-Gem::Specification.new do |spec|
-  spec.required_ruby_version = '>= 2.3'
+# Maintain your gem's version:
+require "break_dance/version"
 
-  spec.name          = 'break_dance'
-  spec.version       = BreakDance::VERSION
-  spec.authors       = ['Zlatko Zahariev']
-  spec.email         = ['zlatko.zahariev@gmail.com']
-  spec.description   = %q{Rails authorization gem.}
-  spec.summary       = %q{Rails authorization for data-centric applications based on ActiveRecord.}
-  spec.homepage      = 'https://github.com/notentered/breakdance'
-  spec.license       = 'MIT'
+# Describe your gem and declare its dependencies:
+Gem::Specification.new do |s|
+  s.name        = "break_dance"
+  s.version     = BreakDance::VERSION
+  s.authors     = ["Zlatko Zahariev"]
+  s.email       = ["zlatko.zahariev@gmail.com"]
+  s.homepage    = "https://github.com/notentered/breakdance"
+  s.summary     = "Rails authorization for data-centric applications based on ActiveRecord."
+  s.description = "Rails authorization gem."
+  s.license     = "MIT"
 
-  spec.files         = `git ls-files`.split($/)
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
-  spec.require_paths = ['lib']
+  s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 
-  spec.add_dependency 'request_store_rails'
+  s.add_dependency "rails", ">= 5.0.0"
+  s.add_dependency "request_store_rails"
 
-  spec.add_development_dependency 'bundler', '~> 1.3'
-  spec.add_development_dependency 'rake'
+  s.add_development_dependency "sqlite3"
 end
