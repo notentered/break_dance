@@ -4,9 +4,11 @@ module BreakDance
 
     class_methods do
       # We cannot use alias_method here, because "super" of the aliased method is the "super" of the original method.
+      # ToDo: This caller(1,1).include? thing is baaaaaad. Probably the whole concept should be reconsidered again. I can probably and up it just a default scopes
+      #       and new method "apply break_dance" to explicitly apply. Or I can just override the finder methods like where, find, take, etc.
       %w(default_scoped unscoped).each do |method_name|
         define_method method_name do |unsecured: false, &block|
-          if RequestLocals.store[:break_dance_enabled] && !unsecured
+          if RequestLocals.store[:break_dance_enabled] && !unsecured && !caller(1,1).first.include?(':in `_update_record\'')
             policy = RequestLocals.store[:break_dance_policy]
 
             raise PolicyNotFound.new('BreakDance::Policy is not defined. By design BreakDance requires all models to be scoped.')                                   unless policy.is_a?(BreakDance::Policy)
@@ -54,4 +56,25 @@ module ActiveRecord
 
     end
   end
+
+  # This is not working. If we start in that direction we can end up with a bunch of patching to just undo what we did above.
+  # module Persistence
+  #   def _update_record(attribute_names = self.attribute_names)
+  #     attributes_values = arel_attributes_with_values_for_update(attribute_names)
+  #     if attributes_values.empty?
+  #       rows_affected = 0
+  #       @_trigger_update_callback = true
+  #     else
+  #       rows_affected = self.class.unsecured_unscoped!._update_record attributes_values, id, id_in_database
+  #       @_trigger_update_callback = rows_affected > 0
+  #     end
+  #
+  #     yield(self) if block_given?
+  #
+  #     rows_affected
+  #   end
+  #
+  # end
+
+
 end
