@@ -2,6 +2,10 @@ module BreakDance
   module ApplicationRecordAdditions
     extend ActiveSupport::Concern
 
+    included do
+      default_scope { all }
+    end
+
     class_methods do
       # We cannot use alias_method here, because "super" of the aliased method is the "super" of the original method.
       # ToDo: This caller(1,1).include? thing is baaaaaad. Probably the whole concept should be reconsidered again. I can probably and up it just a default scopes
